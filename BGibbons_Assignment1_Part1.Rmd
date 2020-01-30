@@ -17,19 +17,29 @@ knitr::opts_chunk$set(echo = FALSE,
 library(tidyverse)
 library(janitor)
 library(kableExtra)
+library(lubridate)
 
 ```
 
 ```{r}
-# Read in the data, retain columns of interest
+# Read in the data, retain columns for grid, sex, and weight. 
+# Correct case differences in columns
+# Retain only the hares with fully identified sex information (m or f, no ?)
+# Remove NA values
 
 hares <- read_csv("showshoe_lter.csv") %>% 
-  select(grid, sex, weight) %>% 
+  mutate(date = mdy(date)) %>% 
+  separate(date, into = c("year", "month", "day", sep = "-")) %>% 
+  select(year, grid, sex, weight, hindft) %>% 
   mutate(grid = str_to_lower(grid),
          sex = str_to_lower(sex)) %>% 
   filter(
     sex == "m" | sex == "f"
+  ) %>% 
+  filter(
+    year == "2008" | year == "2009" | year == "2010" | year == "2011" | year == "2012"
   )
+
 
 hares_nona <- hares %>% 
   drop_na()
@@ -37,16 +47,27 @@ hares_nona <- hares %>%
 ```
 
 ```{r}
-# Create summary table, grouped by the grid
+# Create summary table, grouped by the grid and sex. Report the number of hare observations and the average weight for each group
 
 hare_table <- hares_nona %>% 
-  group_by(grid, sex) %>% 
+  group_by(year, grid, sex) %>% 
   summarize(
     count = length(sex),
-    avg_weight = mean(weight)
+    avg_weight = mean(weight),
+    avg_hindft = mean(hindft)
   )
 
 hare_table
 
+```
+
+```{r}
+
+hares_plot <- ggplot(hare_table, aes(x = year, y = count, group = sex)) +
+  geom_line(aes(color = sex)) +
+  facet_wrap(~ grid) +
+  theme_minimal()
+
+hares_plot
 ```
 
