@@ -1,5 +1,5 @@
 ---
-title: "BG_Assignment1_Part1_ShowshoeHare"
+title: "BG_Assignment1_Part1_SnowshoeHare"
 author: "Bridget Gibbons"
 date: "1/30/2020"
 output: html_document
@@ -46,15 +46,15 @@ hares_nona <- hares %>%
 
 ```
 
-```{r}
+```{r, include = FALSE}
 # Create summary table, grouped by the grid and sex. Report the number of hare observations and the average weight for each group
 
 hare_table <- hares_nona %>% 
   group_by(year, grid, sex) %>% 
   summarize(
     count = length(sex),
-    avg_weight = mean(weight),
-    avg_hindft = mean(hindft)
+    avg_weight = round(mean(weight), digits = 0),
+    avg_hindft = round(mean(hindft), digits = 0)
   )
 
 hare_table
@@ -63,11 +63,32 @@ hare_table
 
 ```{r}
 
+# Make the table look nice
+
+kable(hare_table, col.names = c("Year", "Grid Name","Sex","Hare Count", "Average Weight", "Average Hind Foot Size"), align = "c", caption = "Table 1. Snowshoe Hare Statistics for Two Grid Locations from 2008 to 2012 ") %>% 
+  add_header_above(c("", "Snowshoe Hare Statistics" = 4, "")) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  footnote(symbol = c("Data Source: "))
+
+
+```
+
+
+```{r}
+
 hares_plot <- ggplot(hare_table, aes(x = year, y = count, group = sex)) +
   geom_line(aes(color = sex)) +
+  geom_point(aes(color = sex, size = avg_hindft)) +
   facet_wrap(~ grid) +
-  theme_minimal()
+  theme_minimal() +
+  labs(x = "Count", y = "Year")
 
 hares_plot
+```
+
+```{r}
+
+
+
 ```
 
