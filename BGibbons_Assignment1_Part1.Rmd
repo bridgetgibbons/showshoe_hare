@@ -1,0 +1,52 @@
+---
+title: "BG_Assignment1_Part1_ShowshoeHare"
+author: "Bridget Gibbons"
+date: "1/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+```{r}
+# Load packages
+
+library(tidyverse)
+library(janitor)
+library(kableExtra)
+
+```
+
+```{r}
+# Read in the data, retain columns of interest
+
+hares <- read_csv("showshoe_lter.csv") %>% 
+  select(grid, sex, weight) %>% 
+  mutate(grid = str_to_lower(grid),
+         sex = str_to_lower(sex)) %>% 
+  filter(
+    sex == "m" | sex == "f"
+  )
+
+hares_nona <- hares %>% 
+  drop_na()
+
+```
+
+```{r}
+# Create summary table, grouped by the grid
+
+hare_table <- hares_nona %>% 
+  group_by(grid, sex) %>% 
+  summarize(
+    count = length(sex),
+    avg_weight = mean(weight)
+  )
+
+hare_table
+
+```
+
