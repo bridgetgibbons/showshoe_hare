@@ -1,12 +1,12 @@
 ---
-title: "BG_Assignment1_Part1_SnowshoeHare"
+title: "ESM 244 Assignment 1 - Part 1"
 author: "Bridget Gibbons"
 date: "1/30/2020"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,
+knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE)
 ```
@@ -18,38 +18,80 @@ library(tidyverse)
 library(janitor)
 library(kableExtra)
 library(lubridate)
+library(ggfortify)
+library(tidyr)
+
+```
+
+### Task 1
+
+
+
+<br> 
+
+Snowshoe hares have been identified as a 'keystone' prey species in northern boreal forests. This study, conducted in the Bonanza Creek Experimental Forest just east of Fairbanks, Alaska, tracked snowshoe hare populations to generate quantitative data that could be used to better explain and predict vegetation and preditor responses to fluctuations in hare populations. Snowshoe hares are known to experience population fluctuations every 8-11 years. This trend is demonstrated by fluctuations in observation counts during the monitoring period; counts of hare observations declined between 1999 and 2002, and then showed a steady increase from ~2002 to ~2010 (Figure 1, Table 1) (Kielland, Chapin & Ruess, 2017). 
+
+<br>
+
+
+```{r}
+# Read in the data, retain columns for grid, sex, and weight. 
+
+hares <- read_csv("showshoe_lter.csv") %>% # Read in data
+  mutate(date = mdy(date)) %>% # transform the date data into a usable format
+  separate(date, into = c("year", "month", "day", sep = "-")) %>%  # separate the date into three columns  
+  mutate(grid = str_to_lower(grid),
+         sex = str_to_lower(sex)) %>%  # make grid and sex all lower case
+  filter(
+    sex == "m" | sex == "f"
+  ) # retain only data that is certainly male or female
+  
+```
+
+```{r}
+# explore data
+
+#summary(hares)
+
+```
+
+
+```{r}
+# make exploratory graphs
+
+ggplot(data = hares, aes(x = weight, y = hindft)) +
+  geom_point(aes(color = sex)) +
+  facet_wrap(~grid)
+
+# not sure about this as something interesting to present
+
+# not very many observations at bonmat, more at the other two grid locations
 
 ```
 
 ```{r}
-# Read in the data, retain columns for grid, sex, and weight. 
-# Correct case differences in columns
-# Retain only the hares with fully identified sex information (m or f, no ?)
-# Remove NA values
 
-hares <- read_csv("showshoe_lter.csv") %>% 
-  mutate(date = mdy(date)) %>% 
-  separate(date, into = c("year", "month", "day", sep = "-")) %>% 
+hares_clean <- hares %>% 
   select(year, grid, sex, weight, hindft) %>% 
-  mutate(grid = str_to_lower(grid),
-         sex = str_to_lower(sex)) %>% 
   filter(
-    sex == "m" | sex == "f"
-  ) %>% 
+    grid == "bonrip" | grid == "bonbs"
+    ) %>% #keep just the two grids of inteerest
   filter(
     year == "2008" | year == "2009" | year == "2010" | year == "2011" | year == "2012"
-  )
+    ) #keep just the years of interest, this exploration is just showing recent trends
 
 
-hares_nona <- hares %>% 
-  drop_na()
+hares_nona <- hares_clean %>% 
+  drop_na() # remove NA values from the dataset
 
 ```
 
 ```{r, include = FALSE}
-# Create summary table, grouped by the grid and sex. Report the number of hare observations and the average weight for each group
+# Create summary table for more more data exploration, grouped by the grid and sex. Report the number of hare observations and the average weight for each group. Is this interesting? 
 
-hare_table <- hares_nona %>% 
+# Add in hind foot data, since that's what they are known for
+
+hare_first_table <- hares_nona %>% 
   group_by(year, grid, sex) %>% 
   summarize(
     count = length(sex),
@@ -57,7 +99,10 @@ hare_table <- hares_nona %>%
     avg_hindft = round(mean(hindft), digits = 0)
   )
 
-hare_table
+#hare_first_table
+
+# this is a big table, limit to more recent years to highlight the trend
+
 
 ```
 
@@ -65,30 +110,42 @@ hare_table
 
 # Make the table look nice
 
-kable(hare_table, col.names = c("Year", "Grid Name","Sex","Hare Count", "Average Weight", "Average Hind Foot Size"), align = "c", caption = "Table 1. Snowshoe Hare Statistics for Two Grid Locations from 2008 to 2012 ") %>% 
+hare_final_table <- kable(hare_first_table, col.names = c("Year", "Grid Name","Sex","Hare Count", "Average Weight", "Average Hind Foot Size"), align = "c", caption = "Table 1. Summary Statistics for Snowshow Hares at Two Monitoring Points within the Bonanza Creek Experimental Forest from 2008 to 2012. Observed counts at sites BonRip and BonBS for males and females, along with average weights and hind foot sizes, are reported for each period.") %>% 
   add_header_above(c("", "Snowshoe Hare Statistics" = 4, "")) %>% 
   kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
   footnote(symbol = c("Data Source: "))
 
+hare_final_table
+
 
 ```
 
 
 ```{r}
 
-hares_plot <- ggplot(hare_table, aes(x = year, y = count, group = sex)) +
+hares_plot <- ggplot(hare_first_table, aes(x = year, y = count, group = sex)) +
   geom_line(aes(color = sex)) +
-  geom_point(aes(color = sex, size = avg_hindft)) +
-  facet_wrap(~ grid) +
+  geom_point(aes(color = sex, size = avg_hindft), alpha = 0.5) +
+  facet_wrap(~ grid, scales = "free") +
   theme_minimal() +
-  labs(x = "Count", y = "Year")
+  labs(x = "Year", y = "Snowshoe Hare Count") +
+  labs(color = "Sex", size = "Average Hind Foot Size") +
+  theme(legend.position = "bottom")
 
 hares_plot
 ```
 
-```{r}
+**Figure 1. Snowshoe Hare Observations in the Bonanza Creek Experimental Forest from 2008 - 2012. ** Count for males and female snowshoe hares, organized by sampling grid locations. Points represent the average hind foot size for each observation.
 
 
+<br>
 
-```
+Reference:
+
+<br> 
+
+Reference:             
+
+Kielland K., F. S. Chapin, R. W. Ruess. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14. 
+
 
