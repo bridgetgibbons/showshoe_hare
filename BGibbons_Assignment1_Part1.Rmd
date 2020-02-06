@@ -33,6 +33,11 @@ Snowshoe hares have been identified as a 'keystone' prey species in northern bor
 
 <br>
 
+![Image of a snowshoe hare with its signature hind foot. Image source: Northwest Wildlife (http://www.northwestwildlife.com/learn/species-reports/snowshoe-hare/).](hare_photo.png)
+
+
+<br>
+
 
 ```{r}
 # Read in the data, retain columns for grid, sex, and weight. 
@@ -70,6 +75,8 @@ ggplot(data = hares, aes(x = weight, y = hindft)) +
 ```
 
 ```{r}
+
+# clean up the dataset a bit more
 
 hares_clean <- hares %>% 
   select(year, grid, sex, weight, hindft) %>% 
@@ -122,6 +129,8 @@ hare_final_table
 
 
 ```{r}
+
+# make final plot
 
 hares_plot <- ggplot(hare_first_table, aes(x = year, y = count, group = sex)) +
   geom_line(aes(color = sex)) +
